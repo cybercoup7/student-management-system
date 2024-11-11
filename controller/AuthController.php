@@ -1,19 +1,19 @@
 <?php
-namespace SYS\AUTHS;
-use Exception;
+namespace SYS\CONTROLLER;
 
+require_once  __DIR__ . '/../dao/DAO.php';
 use SYS\DAO\DAO;
 
 class AuthController
 {
     private const HASH_ALGORITHM = 'sha256';
     private string $hashKey;
-    private DAO $userDAO;
+    private DAO $authDao;
 
-    public function __construct(string $hashKey, DAO $userDAO)
+    public function __construct()
     {
-        $this->hashKey = $hashKey;
-        $this->userDAO = $userDAO;
+        $this->hashKey = "nadjndakjnqiury319ou30eada";
+        $this->authDao = new Dao();
     }
 
     private function generateToken(int $userId): string
@@ -24,27 +24,38 @@ class AuthController
     }
 
 
-    public function register($user){
+    public function register(){
         // $user->password = password_hash($user->password, PASSWORD_DEFAULT);
-        $this->userDAO->insertUser($user);
+        $user = $_POST;
+        $this->authDao->insertUser($user);
     }
 
-    public function login(int $userId, string $password): string
+    public function login()
     {
-        $user = $this->userDAO->fetchUser($userId);
+        $userId = $_POST['user_id'];
+        $password =$_POST['password'];
+
+        $user = $this->authDao->fetchUser($userId);
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            throw new Exception('Invalid credentials');
+            die("Invalid Credentials");
         }
 
         $token = $this->generateToken($user['user_id']);
-        $this->userDAO->setUserToken($user['user_id'], $token);
+        $this->authDao->setUserToken($user['user_id'], $token);
 
-        return $token;
+        setcookie('auth-token', $token, (time()+3600), null, null, false, false);
+
+        header(
+          "Location: tests/dashboard.php"  
+        );
+        exit;
+        // Should redirect to some protected url
     }
 
-    public function isAuthenticated(string $token): bool
+    public function isAuthenticated(): bool
     {
+        $token = $_COOKIE['auth-token'] ?? '';
         // Split token into parts
         $parts = explode('.', $token);
         if (count($parts) !== 3) {
@@ -57,17 +68,23 @@ class AuthController
     
         if (!hash_equals($expectedHash, $hash)) {
             return false;  // Invalid token hash
-        }
-    
-        $user = $this->userDAO->fetchUser((int) $userId);
+        } 
+        $user = $this->authDao->fetchUser((int) $userId);
     
         return $user !== null;  // Return true if user exists and token is valid
     }
     
 
-    public function logout(string $token): bool
+    public function logout(): bool
     {
-        return $this->userDAO->deleteUserToken($token);
+        $token = $_COOKIE['auth-token'] ?? '';
+        $isSuccess = $this->authDao->deleteUserToken($token);
+        if ($isSuccess) {
+            setcookie('auth-token', '', (time()-3600), null, null, false, false);
+            return true;
+        }
+        // ELSE SEND ALERT OF LOG OUT FAILURE AND EXIT
+        return false;
     }
 }
 

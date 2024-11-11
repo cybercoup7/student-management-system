@@ -138,7 +138,9 @@ class DAO
 
     public function __destruct()
     {
-        mysqli_close($this->dbConnection);
+        if($this->dbConnection !== null){
+            mysqli_close($this->dbConnection);
+        }
     }
 }
 
