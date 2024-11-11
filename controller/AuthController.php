@@ -1,7 +1,5 @@
 <?php
 namespace SYS\CONTROLLER;
-
-require_once  __DIR__ . '/../dao/DAO.php';
 use SYS\DAO\DAO;
 
 class AuthController

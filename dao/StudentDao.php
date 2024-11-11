@@ -10,16 +10,16 @@ class StudentDAO {
     private string $dbUser = 'root';
     private string $dbPassword = '';
 
-    public function __construct()
+    public function __construct($dbConn=null)
     {
-        $this->connection = mysqli_connect($this->dbHost, $this->dbUser, $this->dbPassword, $this->dbName);
+        $this->connection = $dbConn??mysqli_connect($this->dbHost, $this->dbUser, $this->dbPassword, $this->dbName);
         if (!$this->connection) {
             throw new Exception("Connection failed: " . mysqli_connect_error());
         }
     }
 
     // Create a new student record
-    public function createStudent(array $studentData): bool
+    public function createStudent(array $studentData, bool $shouldcommit=true): bool
     {
         $role= 'student';
         mysqli_begin_transaction($this->connection);
@@ -29,12 +29,16 @@ class StudentDAO {
             mysqli_stmt_bind_param($userStmt, 'isss', $studentData['user_id'], $studentData['f_name'], $studentData['l_name'], $role);
             mysqli_stmt_execute($userStmt);
 
-            $studentSql = "INSERT INTO student (user_id, program_d) VALUES (?, ?)";
+            $studentSql = "INSERT INTO student (user_id, program_id, next_of_kin, g12_grade) VALUES (?, ?, ?,?)";
             $studentStmt = mysqli_prepare($this->connection, $studentSql);
-            mysqli_stmt_bind_param($studentStmt, 'is', $studentData['user_id'], $studentData['program_id']);
+            mysqli_stmt_bind_param($studentStmt, 'isss', $studentData['user_id'], $studentData['program_id'],
+                                        $studentData['next_of_kin'], $studentData['g12_grade']);    
             mysqli_stmt_execute($studentStmt);
 
-            mysqli_commit($this->connection);
+            if ($shouldcommit) {
+                mysqli_commit($this->connection);
+                return true;
+            }
             return true;
         } catch (Exception $e) {
             mysqli_rollback($this->connection);
@@ -59,8 +63,7 @@ class StudentDAO {
         return $student;
     }
 
-    public function getStudentCourses(int $userId): array
-{
+    public function getStudentCourses(int $userId): array{
     $sql = "SELECT course.course_id, course.course_name, course.description, dept.dept_name
             FROM student_course
             JOIN course ON student_course.course_id = course.course_id
@@ -77,6 +80,25 @@ class StudentDAO {
     return $courses;
 }
 
+    public function getStudentApplicantion(int $id): array{
+        $sql = "SELECT id, g12_grade, f_name, l_name, program_id, next_of_kin, status, nrc FROM applications WHERE id = ?";
+        $stmt = mysqli_prepare($this->connection, $sql);
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $studentApplication = mysqli_fetch_assoc($result) ?: [];
+        return $studentApplication;
+    }
+
+    public function listStudentApplications(){
+        $sql = "SELECT * FROM applications";
+        $stmt = mysqli_prepare($this->connection, $sql);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $studentApplications = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+        return $studentApplications??[];
+    }
     // Update a student's details
     public function updateStudentField(int $userId, string $field, $newValue): bool
 {

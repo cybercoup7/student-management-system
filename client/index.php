@@ -1,3 +1,12 @@
+<?php
+namespace SYS\CLIENT;
+
+use SYS\CONTROLLER\StudentController;
+
+
+$student = new StudentController();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 

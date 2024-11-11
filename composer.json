@@ -14,14 +14,17 @@
     },
     "autoload": {
         "psr-4": {
-            "SYS\\DAO\\": "dao/",
-            "SYS\\CONTROLLER\\": "controller/",
-            "SYS\\CLIENT\\": "client/"
+            "SYS\\": "",
+            "SYS\\DAO\\": "dao",
+            "SYS\\CONTROLLER\\": "controller",
+            "SYS\\MIDDLEWARE\\": "middleware",
+            "SYS\\CLIENT\\": "client",
+            "SYS\\RES\\": "response"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "SYS\\TEST\\": "tests/"
+            "SYS\\TEST\\": "tests"
         }
     }
 }

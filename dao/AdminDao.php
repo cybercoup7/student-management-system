@@ -2,6 +2,7 @@
 namespace SYS\DAO;
 
 use Exception;
+use mysqli;
 
 class AdminDAO {
     private $connection;
@@ -10,9 +11,9 @@ class AdminDAO {
     private string $dbUser = 'root';
     private string $dbPassword = '';
 
-    public function __construct()
+    public function __construct($dbConn=null)
     {
-        $this->connection = mysqli_connect($this->dbHost, $this->dbUser, $this->dbPassword, $this->dbName);
+        $this->connection = $dbConn??mysqli_connect($this->dbHost, $this->dbUser, $this->dbPassword, $this->dbName);
         if (!$this->connection) {
             throw new Exception("Connection failed: " . mysqli_connect_error());
         }
@@ -113,5 +114,42 @@ class AdminDAO {
         $admins = mysqli_fetch_all($result, MYSQLI_ASSOC);
         return $admins;
     }
+
+    public function executeStudentApprovalTransaction(int $id){
+        mysqli_begin_transaction($this->connection);
+        try {
+            $studentDao = new StudentDAO($this->connection);
+            $studentData=$studentDao->getStudentApplicantion($id);
+
+            $studentData['user_id'] = $studentData['id'];
+            unset($studentData['id']);
+
+            $studentDao->createStudent($studentData, false);
+            // Write query to update application status in applications table
+            $status = 'approved';
+            $sql = "UPDATE applications SET `status` = ? WHERE id = ?";
+            $stmt = mysqli_prepare($this->connection, $sql);
+            mysqli_stmt_bind_param($stmt, 'si',$status, $studentData['user_id']);
+            mysqli_stmt_execute($stmt);
+            mysqli_commit($this->connection);
+            return true;
+        }
+        catch (Exception $e) {
+            mysqli_rollback($this->connection);
+            throw new Exception("Failed to approve student: " . $e->getMessage() . "\n
+            " . mysqli_error($this->connection));
+            }
+
+    }
+    // reject student
+    public function rejectStudent($studentId){
+        $sql = "UPDATE applications SET status = rejected WHERE id = ?";
+        $stmt = mysqli_prepare($this->connection, $sql);
+        mysqli_stmt_bind_param($stmt, 'i',$studentId);
+
+        return mysqli_stmt_execute($stmt);
+    }
+
 }
+
 ?>

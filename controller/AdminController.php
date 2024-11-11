@@ -1,6 +1,5 @@
 <?php
 namespace SYS\CONTROLLER;
-require_once __DIR__ . '/../dao/AdminDAO.php';
 use SYS\DAO\AdminDAO;
 
 class AdminController {
@@ -40,5 +39,10 @@ class AdminController {
     {
         return $this->adminDao->deleteAdmin($userId);
     }
+
+    public function approveStudentApplication(int $id){
+        return $this->adminDao->executeStudentApprovalTransaction($id);
+    }
+
 }
 ?>
