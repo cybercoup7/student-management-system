@@ -35,6 +35,8 @@ $student = new StudentController();
                     <a href="./courses/courses.php">
                         Courses
                     </a>
+
+                    <button onclick="<?php $student->deleteStudent(20) ?>"> Delete Student</button>
                 </li>
                 <li class="sideBar-item">
                     <a href="./lecturers/lecturers.php">

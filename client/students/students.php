@@ -31,5 +31,6 @@ Students
     <input type="number" name="user_id">
     <input type="submit" name="submit">
 </form>
+<br>
 </body>
 </html>

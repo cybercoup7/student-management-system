@@ -15,13 +15,17 @@ class StudentController {
         
     }
 
-    public function createStudent(array $studentData): bool {
+    public function createStudent(array $studentData = []): bool {
+        if(empty($studentData)){
+            $studentData = $_POST;
+        }
         try {
             $result = $this->studentDao->createStudent($studentData);
             $this->resHandler->handleCreateStudent($result);
         }
         catch (Exception $e) {
-            return false;
+            die($e->getMessage());
+            // return false;
             }
     }
     // Method to get student details
@@ -31,7 +35,7 @@ class StudentController {
             return $this->studentDao->getStudent($userId);
         } catch (Exception $e) {
             // use response handler instead of throwing exception
-            throw new Exception("Error fetching student details: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
@@ -41,7 +45,7 @@ class StudentController {
         try {
             return $this->studentDao->getStudentCourses($userId);
         } catch (Exception $e) {
-            throw new Exception("Error fetching enrolled courses: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
@@ -50,7 +54,7 @@ class StudentController {
             return $this->studentDao->getStudentApplicantion($id);
         }
         catch (Exception $e) {
-            throw new Exception("Error fetching student applicant details: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
@@ -59,22 +63,26 @@ class StudentController {
             return $this->studentDao->listStudentApplications();
         }
         catch (Exception $e) {
-            throw new Exception("Error fetching student applications: " . $e->getMessage());
+            die($e->getMessage());
         }
 
     }
 
     // Method to update a student field (like personal details)
-    public function updateStudentField(): bool
+    public function updateStudentField(int $userId = -1, string $field ="", string $newValue = ""): bool
     {
-        $userId=$_POST['user_id'];
-        $field=$_POST['field'];
-        $newValue=$_POST['newValue'];
+        if($userId== -1 && $field==="" && $newValue==="")
+        {
+            $userId=$_POST['user_id'];
+            $field=$_POST['field'];
+            $newValue=$_POST['newValue'];
+        }
+        
         try {
             $result =$this->studentDao->updateStudentField($userId, $field, $newValue);
             $this->resHandler->handleUpdateStudent($result);
         } catch (Exception $e) {
-            throw new Exception("Error updating student field: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
@@ -85,7 +93,7 @@ class StudentController {
             $result = $this->studentDao->deleteStudent($userId);
             $this->resHandler->handleDeleteStudent($result);
         } catch (Exception $e) {
-            throw new Exception("Error deleting student: " . $e->getMessage());
+           die($e->getMessage());
         }
     }
 
@@ -95,7 +103,7 @@ class StudentController {
         try {
             return $this->studentDao->listAllStudents();
         } catch (Exception $e) {
-            throw new Exception("Error fetching student list: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
@@ -105,19 +113,21 @@ class StudentController {
         try {
             return $this->studentDao->getStudentGrades($userId);
         } catch (Exception $e) {
-            throw new Exception("Error fetching grades: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
     //Apply for a program
-    public function applyForProgram(): bool
+    public function applyForProgram(array $applicationData = []): bool
     {
-        $applicantData = $_POST;
+        if(empty($applicantData)){
+            $applicantData = $_POST;
+        }
         try {
             $result = $this->studentDao->applyForProgram($applicantData);
             $this->resHandler->handleApplyForProgram($result);
         } catch (Exception $e) {
-            throw new Exception("Error applying for program: " . $e->getMessage());
+             die($e->getMessage());
         }
     }
 }
