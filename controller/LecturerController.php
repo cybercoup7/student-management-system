@@ -1,6 +1,5 @@
 <?php
 namespace SYS\CONTROLLER;
-require_once __DIR__ . '/../dao/LecturerDAO.php';
 use SYS\DAO\LecturerDAO;
 use Exception;
 

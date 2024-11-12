@@ -1,23 +1,31 @@
 <?php
 namespace SYS\CONTROLLER;
-
 use SYS\DAO\StudentDAO;
 use Exception;
+use SYS\RES\StudentResHandler;
 
 class StudentController {
     private StudentDAO $studentDao;
+    private StudentResHandler $resHandler;
 
     public function __construct()
     {
         $this->studentDao = new StudentDAO();
+        $this->resHandler = new StudentResHandler();
+        
     }
 
-    public function createStudent(array $studentData): bool {
+    public function createStudent(array $studentData = []): bool {
+        if(empty($studentData)){
+            $studentData = $_POST;
+        }
         try {
-            return $this->studentDao->createStudent($studentData);
+            $result = $this->studentDao->createStudent($studentData);
+            $this->resHandler->handleCreateStudent($result);
         }
         catch (Exception $e) {
-            return false;
+            die($e->getMessage());
+            // return false;
             }
     }
     // Method to get student details
@@ -26,7 +34,8 @@ class StudentController {
         try {
             return $this->studentDao->getStudent($userId);
         } catch (Exception $e) {
-            throw new Exception("Error fetching student details: " . $e->getMessage());
+            // use response handler instead of throwing exception
+            die($e->getMessage());
         }
     }
 
@@ -36,17 +45,44 @@ class StudentController {
         try {
             return $this->studentDao->getStudentCourses($userId);
         } catch (Exception $e) {
-            throw new Exception("Error fetching enrolled courses: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
+    public function getStudentApplication($id){
+        try{
+            return $this->studentDao->getStudentApplicantion($id);
+        }
+        catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function listStudentApplications(): array{
+        try{
+            return $this->studentDao->listStudentApplications();
+        }
+        catch (Exception $e) {
+            die($e->getMessage());
+        }
+
+    }
+
     // Method to update a student field (like personal details)
-    public function updateStudentField(int $userId, string $field, $newValue): bool
+    public function updateStudentField(int $userId = -1, string $field ="", string $newValue = ""): bool
     {
+        if($userId== -1 && $field==="" && $newValue==="")
+        {
+            $userId=$_POST['user_id'];
+            $field=$_POST['field'];
+            $newValue=$_POST['newValue'];
+        }
+        
         try {
-            return $this->studentDao->updateStudentField($userId, $field, $newValue);
+            $result =$this->studentDao->updateStudentField($userId, $field, $newValue);
+            $this->resHandler->handleUpdateStudent($result);
         } catch (Exception $e) {
-            throw new Exception("Error updating student field: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
@@ -54,9 +90,10 @@ class StudentController {
     public function deleteStudent(int $userId): bool
     {
         try {
-            return $this->studentDao->deleteStudent($userId);
+            $result = $this->studentDao->deleteStudent($userId);
+            $this->resHandler->handleDeleteStudent($result);
         } catch (Exception $e) {
-            throw new Exception("Error deleting student: " . $e->getMessage());
+           die($e->getMessage());
         }
     }
 
@@ -66,7 +103,7 @@ class StudentController {
         try {
             return $this->studentDao->listAllStudents();
         } catch (Exception $e) {
-            throw new Exception("Error fetching student list: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
@@ -76,18 +113,21 @@ class StudentController {
         try {
             return $this->studentDao->getStudentGrades($userId);
         } catch (Exception $e) {
-            throw new Exception("Error fetching grades: " . $e->getMessage());
+            die($e->getMessage());
         }
     }
 
     //Apply for a program
-    public function applyForProgram(): bool
+    public function applyForProgram(array $applicationData = []): bool
     {
-        $applicantData = $_POST;
+        if(empty($applicantData)){
+            $applicantData = $_POST;
+        }
         try {
-            return $this->studentDao->applyForProgram($applicantData);
+            $result = $this->studentDao->applyForProgram($applicantData);
+            $this->resHandler->handleApplyForProgram($result);
         } catch (Exception $e) {
-            throw new Exception("Error applying for program: " . $e->getMessage());
+             die($e->getMessage());
         }
     }
 }

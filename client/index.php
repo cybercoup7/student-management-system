@@ -1,3 +1,12 @@
+<?php
+namespace SYS\CLIENT;
+
+use SYS\CONTROLLER\StudentController;
+
+
+$student = new StudentController();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -26,6 +35,8 @@
                     <a href="./courses/courses.php">
                         Courses
                     </a>
+
+                    <button onclick="<?php $student->deleteStudent(20) ?>"> Delete Student</button>
                 </li>
                 <li class="sideBar-item">
                     <a href="./lecturers/lecturers.php">
